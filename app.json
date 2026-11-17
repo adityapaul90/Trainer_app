@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "instafit.",
+    "slug": "instafit",
+    "version": "1.0.0",
+    "description": "Book vetted personal trainers for 1-on-1 sessions in Guwahati.",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "instafit",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F5F5EF",
+    "ios": {
+      "supportsTablet": true,
+      "icon": "./assets/images/icon.png",
+      "backgroundColor": "#F5F5EF"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#10120D",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "backgroundColor": "#F5F5EF"
+    },
+    "web": {
+      "output": "server",
+      "favicon": "./assets/images/favicon.png",
+      "name": "instafit.",
+      "shortName": "instafit.",
+      "lang": "en",
+      "scope": "/",
+      "startUrl": "/",
+      "themeColor": "#10120D",
+      "backgroundColor": "#F5F5EF",
+      "description": "Book vetted personal trainers for 1-on-1 sessions in Guwahati.",
+      "display": "standalone"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#10120D"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
