@@ -25,6 +25,9 @@ export default function Root({ children }) {
             background-color: ${APP_BACKGROUND};
             min-height: 100%;
           }
+          html, body, #root, button, input, textarea, select {
+            font-family: 'Nunito_400Regular', system-ui, sans-serif;
+          }
           body {
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;

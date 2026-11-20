@@ -42,11 +42,22 @@ export const radius = {
   pill: 999,
 };
 
+export const fonts = {
+  light: 'Nunito_300Light',
+  regular: 'Nunito_400Regular',
+  medium: 'Nunito_500Medium',
+  semibold: 'Nunito_600SemiBold',
+  bold: 'Nunito_700Bold',
+  extrabold: 'Nunito_800ExtraBold',
+  black: 'Nunito_900Black',
+};
+
 export const type = {
   display: {
     fontSize: 36,
     lineHeight: 40,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -1.5,
     color: colors.ink,
   },
@@ -54,6 +65,7 @@ export const type = {
     fontSize: 28,
     lineHeight: 33,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -1,
     color: colors.ink,
   },
@@ -61,6 +73,7 @@ export const type = {
     fontSize: 22,
     lineHeight: 27,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.5,
     color: colors.ink,
   },
@@ -68,21 +81,25 @@ export const type = {
     fontSize: 17,
     lineHeight: 22,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     letterSpacing: -0.2,
     color: colors.ink,
   },
   body: {
     fontSize: 15,
+    fontFamily: fonts.regular,
     lineHeight: 24,
     color: colors.inkSoft,
   },
   small: {
     fontSize: 13,
+    fontFamily: fonts.regular,
     lineHeight: 19,
     color: colors.muted,
   },
   tiny: {
     fontSize: 11,
+    fontFamily: fonts.regular,
     lineHeight: 15,
     color: colors.muted,
   },
@@ -90,6 +107,7 @@ export const type = {
     fontSize: 11,
     lineHeight: 14,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: 1.35,
     textTransform: 'uppercase',
     color: colors.muted,
@@ -126,8 +144,8 @@ export const shadows = {
 export const layout = {
   screenPadding: 20,
   maxWidth: 720,
-  wideWidth: 1160,
-  profileWidth: 1080,
+  wideWidth: 1440,
+  profileWidth: 1200,
   desktopBreakpoint: 1024,
   navHeight: 76,
   tabBarHeight: 64,

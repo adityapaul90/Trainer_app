@@ -2,12 +2,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Animated,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import {
@@ -15,11 +18,14 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 
+import { FakeQrCode } from '@/components/FakeQrCode';
 import { IconButton } from '@/components/IconButton';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { ScreenMeta } from '@/components/ScreenMeta';
-import { colors, layout, radius, shadows, type } from '@/constants/theme';
+import { colors, layout, radius, shadows, type , fonts } from '@/constants/theme';
+import { useAuth } from '@/context/AuthContext';
 import { useBookings } from '@/context/BookingContext';
+import { usePublishedTrainers } from '@/context/PublishedTrainersContext';
 import {
   DISABLED_SLOTS,
   DURATIONS,
@@ -30,6 +36,11 @@ import {
   SESSION_TYPES,
   TIME_SLOTS,
 } from '@/data/trainers';
+import {
+  saveCustomerBooking,
+  sendBookingOtp,
+  verifyBookingOtp,
+} from '@/services/customerBookings';
 import { formatFullDate, getNextDays } from '@/utils/dates';
 import { useResponsive } from '@/hooks/useResponsive';
 
@@ -59,12 +70,312 @@ function StepHeader({ number, title }) {
   );
 }
 
+const PAYMENT_DELAY_MS = 3000;
+const SCAN_SIZE = 232;
+
+function PaymentSheet({ method, amountLabel, onComplete, onCancel }) {
+  const option =
+    PAYMENT_OPTIONS.find((item) => item.id === method) || PAYMENT_OPTIONS[0];
+  const isUpi = option.id === 'upi';
+  const progress = useRef(new Animated.Value(0)).current;
+  const sweep = useRef(new Animated.Value(0)).current;
+  const completeRef = useRef(onComplete);
+
+  useEffect(() => {
+    completeRef.current = onComplete;
+  }, [onComplete]);
+
+  useEffect(() => {
+    const scan = Animated.loop(
+      Animated.sequence([
+        Animated.timing(sweep, {
+          toValue: 1,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+        Animated.timing(sweep, {
+          toValue: 0,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    const fill = Animated.timing(progress, {
+      toValue: 1,
+      duration: PAYMENT_DELAY_MS,
+      useNativeDriver: false,
+    });
+
+    scan.start();
+    fill.start(({ finished }) => {
+      if (finished) completeRef.current();
+    });
+
+    return () => {
+      scan.stop();
+      fill.stop();
+    };
+  }, [progress, sweep]);
+
+  return (
+    <Modal transparent animationType="fade" visible onRequestClose={onCancel}>
+      <View style={sheetStyles.backdrop}>
+        <View style={sheetStyles.card}>
+          <View style={sheetStyles.header}>
+            <Text style={sheetStyles.title}>
+              {isUpi ? 'Scan to pay' : 'Processing payment'}
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Cancel payment"
+              hitSlop={8}
+              onPress={onCancel}
+              style={sheetStyles.closeButton}
+            >
+              <Ionicons name="close" size={18} color={colors.ink} />
+            </Pressable>
+          </View>
+
+          <Text style={sheetStyles.amount}>{amountLabel}</Text>
+
+          {isUpi ? (
+            <View style={sheetStyles.scanFrame}>
+              <FakeQrCode size={SCAN_SIZE} />
+              <Animated.View
+                style={[
+                  sheetStyles.scanLine,
+                  {
+                    transform: [
+                      {
+                        translateY: sweep.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0, SCAN_SIZE - 3],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              />
+            </View>
+          ) : (
+            <View style={sheetStyles.processing}>
+              <Ionicons name={option.icon} size={34} color={colors.ink} />
+            </View>
+          )}
+
+          <Text style={sheetStyles.hint}>
+            {isUpi
+              ? 'Open GPay, PhonePe or Paytm and scan this code.'
+              : 'Paying with ' + option.label + '. Please wait.'}
+          </Text>
+
+          <View style={sheetStyles.track}>
+            <Animated.View
+              style={[
+                sheetStyles.fill,
+                {
+                  width: progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0%', '100%'],
+                  }),
+                },
+              ]}
+            />
+          </View>
+
+          <Text style={sheetStyles.note}>
+            Test payment · no money will be charged.
+          </Text>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function DetailsSheet({
+  name,
+  onNameChange,
+  phone,
+  onPhoneChange,
+  verified,
+  onVerified,
+  onContinue,
+  onClose,
+}) {
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpBusy, setOtpBusy] = useState(false);
+  const [verifyBusy, setVerifyBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  const requestOtp = async () => {
+    if (otpBusy) return;
+    if (phone.trim().length !== 10) {
+      setError('Enter a valid 10 digit phone number.');
+      return;
+    }
+    setError('');
+    setOtpBusy(true);
+    try {
+      await sendBookingOtp(phone.trim());
+      setOtpSent(true);
+      setOtpCode('');
+    } catch (err) {
+      setError(err.message || 'Could not send OTP.');
+    } finally {
+      setOtpBusy(false);
+    }
+  };
+
+  const confirmOtp = async () => {
+    if (verifyBusy) return;
+    if (otpCode.trim().length !== 6) {
+      setError('Enter the 6 digit OTP.');
+      return;
+    }
+    setError('');
+    setVerifyBusy(true);
+    try {
+      const data = await verifyBookingOtp(phone.trim(), otpCode.trim());
+      onVerified(phone.trim(), data.verifyToken);
+    } catch (err) {
+      setError(err.message || 'Invalid OTP.');
+    } finally {
+      setVerifyBusy(false);
+    }
+  };
+
+  return (
+    <Modal transparent animationType="fade" visible onRequestClose={onClose}>
+      <View style={sheetStyles.backdrop}>
+        <View style={sheetStyles.card}>
+          <View style={sheetStyles.header}>
+            <Text style={sheetStyles.title}>Your details</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Close details"
+              hitSlop={8}
+              onPress={onClose}
+              style={sheetStyles.closeButton}
+            >
+              <Ionicons name="close" size={18} color={colors.ink} />
+            </Pressable>
+          </View>
+
+          <View style={sheetStyles.form}>
+          <View style={styles.fieldGroup}>
+            <Text style={styles.fieldLabel}>Full name</Text>
+            <TextInput
+              value={name}
+              onChangeText={onNameChange}
+              placeholder="Your name"
+              placeholderTextColor={colors.muted}
+              style={styles.fieldInput}
+              autoCapitalize="words"
+              accessibilityLabel="Full name"
+            />
+          </View>
+
+          <View style={styles.fieldGroup}>
+            <Text style={styles.fieldLabel}>Phone number</Text>
+            <View style={styles.phoneRow}>
+              <TextInput
+                value={phone}
+                onChangeText={onPhoneChange}
+                placeholder="10 digit number"
+                placeholderTextColor={colors.muted}
+                style={[styles.fieldInput, styles.phoneInput]}
+                keyboardType="phone-pad"
+                maxLength={10}
+                accessibilityLabel="Phone number"
+              />
+              {verified ? (
+                <View style={styles.verifiedChip}>
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={15}
+                    color={colors.success}
+                  />
+                  <Text style={styles.verifiedText}>Verified</Text>
+                </View>
+              ) : (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Send OTP"
+                  onPress={requestOtp}
+                  disabled={otpBusy}
+                  style={[styles.otpButton, otpBusy && styles.otpButtonDisabled]}
+                >
+                  <Text style={styles.otpButtonText}>
+                    {otpSent ? 'Resend OTP' : 'Send OTP'}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          </View>
+
+          {verified ? (
+            <PrimaryButton
+              label="Continue to payment"
+              variant="volt"
+              icon={null}
+              onPress={onContinue}
+            />
+          ) : null}
+
+          {otpSent && !verified ? (
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>Enter OTP</Text>
+              <View style={styles.phoneRow}>
+                <TextInput
+                  value={otpCode}
+                  onChangeText={setOtpCode}
+                  placeholder="6 digit OTP"
+                  placeholderTextColor={colors.muted}
+                  style={[styles.fieldInput, styles.phoneInput]}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  accessibilityLabel="One time password"
+                />
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Verify OTP"
+                  onPress={confirmOtp}
+                  disabled={verifyBusy}
+                  style={[styles.otpButton, verifyBusy && styles.otpButtonDisabled]}
+                >
+                  <Text style={styles.otpButtonText}>
+                    {verifyBusy ? 'Verifying…' : 'Verify'}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : null}
+
+          {error ? (
+            <Text style={styles.detailsError}>{error}</Text>
+          ) : null}
+
+          <Text style={styles.fieldNote}>
+            {verified
+              ? 'Session updates will be sent on WhatsApp to this number.'
+              : 'We send a one time password on WhatsApp to confirm your number.'}
+          </Text>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 export default function BookingScreen() {
   const params = useLocalSearchParams();
   const { id } = params;
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { addBooking } = useBookings();
+  const { user } = useAuth();
+  const { loading: trainersLoading } = usePublishedTrainers();
   const { isDesktop } = useResponsive();
 
   const trainer = getTrainerById(Array.isArray(id) ? id[0] : id);
@@ -91,6 +402,42 @@ export default function BookingScreen() {
     const requested = first(params.time);
     return TIME_SLOTS.includes(requested) ? requested : '10:00 AM';
   });
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpBusy, setOtpBusy] = useState(false);
+  const [verifyBusy, setVerifyBusy] = useState(false);
+  const [verifiedPhone, setVerifiedPhone] = useState('');
+  const [verifyToken, setVerifyToken] = useState('');
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [saveError, setSaveError] = useState('');
+
+  useEffect(() => {
+    if (!user) return;
+    setCustomerName((current) => current || user.name || '');
+    const digits = String(user.phone || '').replace(/\D/g, '');
+    const normalized =
+      digits.length === 12 && digits.startsWith('91')
+        ? digits.slice(2)
+        : digits.length === 11 && digits.startsWith('0')
+          ? digits.slice(1)
+          : digits;
+    setCustomerPhone(
+      (current) => current || (normalized.length === 10 ? normalized : '')
+    );
+  }, [user]);
+
+  if (trainersLoading && String(Array.isArray(id) ? id[0] : id).startsWith('published-')) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.notFound}>
+          <Text style={styles.notFoundTitle}>Loading session…</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (!trainer) {
     return (
@@ -121,6 +468,11 @@ export default function BookingScreen() {
   const total = sessionPrice + SERVICE_FEE;
   const venue = getTrainerVenue(trainer);
 
+  const normalizedPhone = customerPhone.trim();
+  const phoneVerified =
+    Boolean(verifiedPhone) && verifiedPhone === normalizedPhone;
+  const canBook = customerName.trim().length >= 2 && phoneVerified;
+
   const location =
     sessionTypeId === 'online'
       ? {
@@ -148,24 +500,61 @@ export default function BookingScreen() {
     router.replace('/');
   };
 
-  const confirmBooking = () => {
-    const booking = {
-      id: createBookingId(),
-      trainerId: trainer.id,
-      dateKey,
-      time,
-      duration: duration.minutes,
-      sessionType: sessionType.id,
-      total,
-      status: 'confirmed',
-      createdAt: new Date().toISOString(),
-    };
+  const completeBooking = async () => {
+    try {
+      const saved = await saveCustomerBooking({
+        verifyToken,
+        name: customerName.trim(),
+        phone: verifiedPhone,
+        trainerId: trainer.id.replace(/^published-/, ''),
+        dateKey,
+        time,
+        duration: duration.minutes,
+        sessionType: sessionType.id,
+        total,
+        paymentMethod,
+      });
 
-    addBooking(booking);
-    router.replace({
-      pathname: '/booking/success',
-      params: { id: booking.id },
-    });
+      addBooking(saved);
+      setPaymentOpen(false);
+      router.replace({
+        pathname: '/booking/success',
+        params: { id: saved.id },
+      });
+    } catch (err) {
+      setPaymentOpen(false);
+      setSaveError(
+        err.message || 'Booking could not be saved. Please try again.'
+      );
+    }
+  };
+
+  const startPayment = () => {
+    setSaveError('');
+    if (!canBook) {
+      setDetailsOpen(true);
+      return;
+    }
+    setPaymentOpen(true);
+  };
+  const cancelPayment = () => setPaymentOpen(false);
+
+  const handleVerified = (phone, token) => {
+    setVerifiedPhone(phone);
+    setVerifyToken(token);
+    setDetailsOpen(false);
+    setPaymentOpen(true);
+  };
+
+  const handlePhoneChange = (value) => {
+    const digits = value.replace(/\D/g, '').slice(0, 10);
+    setCustomerPhone(digits);
+    if (verifiedPhone && digits !== verifiedPhone) {
+      setVerifiedPhone('');
+      setVerifyToken('');
+      setOtpSent(false);
+      setOtpCode('');
+    }
   };
 
   return (
@@ -540,10 +929,17 @@ export default function BookingScreen() {
             </View>
           </View>
 
+          {saveError ? (
+            <View style={styles.errorBanner}>
+              <Ionicons name="alert-circle" size={16} color={colors.danger} />
+              <Text style={styles.errorBannerText}>{saveError}</Text>
+            </View>
+          ) : null}
+
           {isDesktop ? (
             <PrimaryButton
               label={`Confirm and pay · ${formatINR(total)}`}
-              onPress={confirmBooking}
+              onPress={startPayment}
               style={styles.desktopConfirm}
             />
           ) : null}
@@ -578,20 +974,249 @@ export default function BookingScreen() {
             </View>
             <PrimaryButton
               label={`Confirm and pay · ${formatINR(total)}`}
-              onPress={confirmBooking}
+              onPress={startPayment}
               style={styles.confirmButton}
             />
           </View>
         </View>
       ) : null}
+      {detailsOpen ? (
+        <DetailsSheet
+          name={customerName}
+          onNameChange={setCustomerName}
+          phone={customerPhone}
+          onPhoneChange={handlePhoneChange}
+          verified={phoneVerified}
+          onVerified={handleVerified}
+          onContinue={() => {
+            setDetailsOpen(false);
+            setPaymentOpen(true);
+          }}
+          onClose={() => setDetailsOpen(false)}
+        />
+      ) : null}
+      {paymentOpen ? (
+        <PaymentSheet
+          method={paymentMethod}
+          amountLabel={formatINR(total)}
+          onComplete={completeBooking}
+          onCancel={cancelPayment}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }
+
+const sheetStyles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: layout.screenPadding,
+    backgroundColor: 'rgba(16,18,13,0.55)',
+  },
+  card: {
+    width: '100%',
+    maxWidth: 360,
+    padding: 22,
+    gap: 14,
+    alignItems: 'center',
+    borderRadius: radius.xxl,
+    backgroundColor: colors.surface,
+    ...shadows.card,
+  },
+  header: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  title: {
+    ...type.h3,
+    fontSize: 17,
+    fontFamily: fonts.regular,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surfaceMuted,
+  },
+  form: {
+    width: '100%',
+    gap: 14,
+  },
+  amount: {
+    fontSize: 28,
+    lineHeight: 32,
+    fontWeight: '800',
+    fontFamily: fonts.extrabold,
+    letterSpacing: -0.8,
+    color: colors.ink,
+  },
+  scanFrame: {
+    padding: 12,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.white,
+  },
+  scanLine: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    right: 12,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: colors.volt,
+  },
+  processing: {
+    width: SCAN_SIZE,
+    height: SCAN_SIZE,
+    borderRadius: radius.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surfaceMuted,
+  },
+  hint: {
+    ...type.small,
+    textAlign: 'center',
+  },
+  track: {
+    width: '100%',
+    height: 4,
+    borderRadius: 2,
+    overflow: 'hidden',
+    backgroundColor: colors.line,
+  },
+  fill: {
+    height: '100%',
+    borderRadius: 2,
+    backgroundColor: colors.ink,
+  },
+  note: {
+    fontSize: 11.5,
+    lineHeight: 16,
+    fontWeight: '600',
+    fontFamily: fonts.semibold,
+    textAlign: 'center',
+    color: colors.muted,
+  },
+});
 
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.bg,
+  },
+  detailsCard: {
+    padding: 16,
+    gap: 14,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
+  },
+  fieldGroup: {
+    gap: 7,
+  },
+  fieldLabel: {
+    ...type.label,
+    fontSize: 11,
+    fontFamily: fonts.regular,
+  },
+  fieldInput: {
+    height: 46,
+    paddingHorizontal: 14,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
+    backgroundColor: colors.bg,
+    fontSize: 14,
+    fontFamily: fonts.regular,
+    color: colors.ink,
+  },
+  phoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  phoneInput: {
+    flex: 1,
+    minWidth: 0,
+  },
+  otpButton: {
+    height: 46,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.ink,
+    backgroundColor: colors.volt,
+  },
+  otpButtonDisabled: {
+    opacity: 0.5,
+  },
+  otpButtonText: {
+    fontSize: 13,
+    lineHeight: 17,
+    fontWeight: '800',
+    fontFamily: fonts.extrabold,
+    color: colors.ink,
+  },
+  verifiedChip: {
+    height: 46,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.success,
+    backgroundColor: colors.surfaceMuted,
+  },
+  verifiedText: {
+    fontSize: 13,
+    lineHeight: 17,
+    fontWeight: '800',
+    fontFamily: fonts.extrabold,
+    color: colors.success,
+  },
+  detailsError: {
+    fontSize: 12.5,
+    lineHeight: 17,
+    fontWeight: '600',
+    fontFamily: fonts.semibold,
+    color: colors.danger,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.danger,
+    backgroundColor: 'rgba(217,74,74,0.08)',
+  },
+  errorBannerText: {
+    flex: 1,
+    fontSize: 12.5,
+    lineHeight: 17,
+    fontWeight: '600',
+    fontFamily: fonts.semibold,
+    color: colors.danger,
+  },
+  fieldNote: {
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: '500',
+    fontFamily: fonts.medium,
+    color: colors.muted,
   },
   header: {
     flexDirection: 'row',
@@ -604,6 +1229,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...type.h3,
     fontSize: 16,
+    fontFamily: fonts.regular,
   },
   headerSpacer: {
     width: 42,
@@ -671,9 +1297,11 @@ const styles = StyleSheet.create({
   trainerName: {
     ...type.h3,
     fontSize: 16,
+    fontFamily: fonts.regular,
   },
   trainerRole: {
     fontSize: 11.5,
+    fontFamily: fonts.regular,
     lineHeight: 16,
     color: colors.muted,
     marginTop: 1,
@@ -687,12 +1315,14 @@ const styles = StyleSheet.create({
   trainerRating: {
     fontSize: 11.5,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   trainerMetaText: {
     fontSize: 11,
     color: colors.muted,
     fontWeight: '500',
+    fontFamily: fonts.medium,
   },
   secureBadge: {
     flexDirection: 'row',
@@ -708,6 +1338,7 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     lineHeight: 12,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   stepHeader: {
@@ -729,11 +1360,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 14,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   stepTitle: {
     ...type.h3,
     fontSize: 16,
+    fontFamily: fonts.regular,
   },
   typeGrid: {
     flexDirection: 'row',
@@ -769,6 +1402,7 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     lineHeight: 16,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   typeLabelSelected: {
@@ -778,6 +1412,7 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     lineHeight: 13,
     fontWeight: '500',
+    fontFamily: fonts.medium,
     color: colors.muted,
     marginTop: 2,
   },
@@ -809,6 +1444,7 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     lineHeight: 16,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   durationLabelSelected: {
@@ -818,6 +1454,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 23,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.4,
     color: colors.ink,
     marginTop: 5,
@@ -829,6 +1466,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     lineHeight: 12,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.muted,
     marginTop: 1,
   },
@@ -865,6 +1503,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     lineHeight: 12,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.muted,
     maxWidth: 58,
     textAlign: 'center',
@@ -876,6 +1515,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 24,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.5,
     color: colors.ink,
   },
@@ -886,6 +1526,7 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     lineHeight: 12,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     color: colors.muted,
@@ -921,6 +1562,7 @@ const styles = StyleSheet.create({
   timeText: {
     fontSize: 12,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
   },
   timeTextSelected: {
@@ -962,10 +1604,12 @@ const styles = StyleSheet.create({
     fontSize: 13.5,
     lineHeight: 18,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
   },
   locationDetail: {
     fontSize: 10.5,
+    fontFamily: fonts.regular,
     lineHeight: 14,
     color: colors.muted,
     marginTop: 1,
@@ -980,6 +1624,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     lineHeight: 12,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     color: colors.inkSoft,
@@ -996,6 +1641,7 @@ const styles = StyleSheet.create({
   summaryTitle: {
     ...type.h3,
     fontSize: 16,
+    fontFamily: fonts.regular,
     marginBottom: 12,
   },
   summaryRow: {
@@ -1006,11 +1652,13 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 13,
+    fontFamily: fonts.regular,
     color: colors.muted,
   },
   summaryValue: {
     fontSize: 13,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
   },
   summaryDivider: {
@@ -1021,11 +1669,13 @@ const styles = StyleSheet.create({
   summaryTotalLabel: {
     fontSize: 15,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   summaryTotal: {
     fontSize: 18,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.4,
     color: colors.ink,
   },
@@ -1078,6 +1728,7 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     lineHeight: 16,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   paymentCardLabelSelected: {
@@ -1087,6 +1738,7 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     lineHeight: 13,
     fontWeight: '500',
+    fontFamily: fonts.medium,
     color: colors.muted,
     marginTop: 2,
   },
@@ -1111,6 +1763,7 @@ const styles = StyleSheet.create({
   confirmDetailsText: {
     ...type.tiny,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
   },
   bottomBar: {
     position: 'absolute',
@@ -1137,11 +1790,13 @@ const styles = StyleSheet.create({
   totalLabel: {
     ...type.label,
     fontSize: 9,
+    fontFamily: fonts.regular,
   },
   totalValue: {
     fontSize: 22,
     lineHeight: 27,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.7,
     color: colors.ink,
   },

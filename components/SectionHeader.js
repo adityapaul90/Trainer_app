@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, type } from '@/constants/theme';
+import { colors, type , fonts } from '@/constants/theme';
 
 export function SectionHeader({ title, action, onAction, style }) {
   return (
@@ -44,6 +44,7 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 13,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
   },
 });

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, type } from '@/constants/theme';
+import { colors, radius, type , fonts } from '@/constants/theme';
 
 function initialsFor(name) {
   return name
@@ -65,6 +65,7 @@ const styles = StyleSheet.create({
   initials: {
     fontSize: 12,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
     letterSpacing: 0.2,
   },
@@ -75,6 +76,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 18,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
   },
   when: {
@@ -87,6 +89,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 14,
+    fontFamily: fonts.regular,
     lineHeight: 22,
     color: colors.inkSoft,
   },

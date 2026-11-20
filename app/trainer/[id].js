@@ -13,7 +13,7 @@ export function generateMetadata(request, params) {
 
   return buildMetadata(
     trainer.name,
-    `Book ${trainer.name}, ${trainer.role.toLowerCase()} in ${trainer.neighborhood}, Guwahati. Rated ${trainer.rating} from ${trainer.reviewCount} client reviews.`
+    `Book ${trainer.name}, ${trainer.role.toLowerCase()} in ${trainer.neighborhood}. Rated ${trainer.rating} from ${trainer.reviewCount} client reviews.`
   );
 }
 

@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -16,12 +16,13 @@ import {
   shadows,
   spacing,
   type,
+  fonts,
 } from '@/constants/theme';
 import {
   CATEGORIES,
-  NEIGHBORHOODS,
-  TRAINERS,
+  getAllTrainers,
 } from '@/data/trainers';
+import { usePublishedTrainers } from '@/context/PublishedTrainersContext';
 import {
   EMPTY_SEARCH,
   searchTrainers,
@@ -47,7 +48,7 @@ export function getSearchSummary(value = EMPTY_SEARCH) {
     WHO_OPTIONS.find((item) => item.id === value.who) || WHO_OPTIONS[0];
 
   return {
-    where: value.area || 'Anywhere in Guwahati',
+    where: value.area || 'Anywhere in India',
     when: when.label,
     who: who.label,
   };
@@ -92,8 +93,22 @@ function OptionCard({ item, selected, onPress, wide = false }) {
 
 export function SearchSheet({ visible, onClose, initial, onSubmit }) {
   const [draft, setDraft] = useState({ ...EMPTY_SEARCH, ...initial });
+  const { trainers: publishedTrainers } = usePublishedTrainers();
 
-  const count = searchTrainers(TRAINERS, draft).length;
+  const areas = useMemo(() => {
+    const options = new Map();
+    publishedTrainers.forEach((trainer) => {
+      [trainer.city, trainer.state]
+        .filter(Boolean)
+        .forEach((value) => {
+          const key = value.toLowerCase();
+          if (!options.has(key)) options.set(key, value);
+        });
+    });
+    return [...options.values()].sort((a, b) => a.localeCompare(b));
+  }, [publishedTrainers]);
+
+  const count = searchTrainers(getAllTrainers(), draft).length;
   const setField = (key, value) =>
     setDraft((current) => ({ ...current, [key]: value }));
 
@@ -165,7 +180,7 @@ export function SearchSheet({ visible, onClose, initial, onSubmit }) {
                 <TextInput
                   value={draft.query}
                   onChangeText={(query) => setField('query', query)}
-                  placeholder="Neighborhood, coach, or specialty"
+                  placeholder="City, state, coach, or specialty"
                   placeholderTextColor={colors.muted}
                   style={styles.input}
                   autoCapitalize="none"
@@ -206,10 +221,10 @@ export function SearchSheet({ visible, onClose, initial, onSubmit }) {
                       !draft.area && styles.areaChipTextSelected,
                     ]}
                   >
-                    Anywhere in Guwahati
+                    Anywhere in India
                   </Text>
                 </Pressable>
-                {NEIGHBORHOODS.map((area) => {
+                {areas.map((area) => {
                   const selected = draft.area === area;
                   return (
                     <Pressable
@@ -386,6 +401,7 @@ const styles = StyleSheet.create({
     fontSize: 23,
     lineHeight: 27,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -1.2,
     color: colors.ink,
   },
@@ -405,6 +421,7 @@ const styles = StyleSheet.create({
   panelTitle: {
     ...type.display,
     fontSize: 30,
+    fontFamily: fonts.regular,
     lineHeight: 35,
     marginTop: 20,
   },
@@ -437,6 +454,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 14,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: 1,
     textTransform: 'uppercase',
     color: colors.ink,
@@ -455,6 +473,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 14,
+    fontFamily: fonts.regular,
     color: colors.ink,
     paddingVertical: 0,
   },
@@ -482,6 +501,7 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     lineHeight: 15,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.inkSoft,
   },
   areaChipTextSelected: {
@@ -519,6 +539,7 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     lineHeight: 16,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.inkSoft,
   },
   optionLabelSelected: {
@@ -536,6 +557,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 13,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.muted,
     marginTop: 2,
   },
@@ -559,6 +581,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
     textDecorationLine: 'underline',
   },
@@ -575,6 +598,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 17,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.white,
   },
   pressed: {

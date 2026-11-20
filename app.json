@@ -10,11 +10,13 @@
     "userInterfaceStyle": "light",
     "backgroundColor": "#F5F5EF",
     "ios": {
+      "bundleIdentifier": "com.instafit.booking",
       "supportsTablet": true,
       "icon": "./assets/images/icon.png",
       "backgroundColor": "#F5F5EF"
     },
     "android": {
+      "package": "com.instafit.booking",
       "adaptiveIcon": {
         "backgroundColor": "#10120D",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -24,7 +26,7 @@
       "backgroundColor": "#F5F5EF"
     },
     "web": {
-      "output": "server",
+      "output": "single",
       "favicon": "./assets/images/favicon.png",
       "name": "instafit.",
       "shortName": "instafit.",
@@ -46,7 +48,9 @@
           "resizeMode": "contain",
           "backgroundColor": "#10120D"
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,0 +1,5 @@
+{
+  "terminal.integrated.env.windows": {
+    "PATH": "C:/Users/Aditya Paul/AppData/Local/node22-portable/node-v22.13.1-win-x64;${env:PATH}"
+  }
+}

@@ -14,7 +14,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { IconButton } from '@/components/IconButton';
 import { ScreenMeta } from '@/components/ScreenMeta';
 import { TrainerGridCard } from '@/components/TrainerGridCard';
-import { colors, layout, radius, type } from '@/constants/theme';
+import { colors, layout, radius, type , fonts } from '@/constants/theme';
 import { useBookings } from '@/context/BookingContext';
 import { getTrainerById } from '@/data/trainers';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -145,6 +145,7 @@ const styles = StyleSheet.create({
   },
   titleDesktop: {
     fontSize: 38,
+    fontFamily: fonts.regular,
     lineHeight: 43,
     letterSpacing: -1.6,
   },
@@ -162,6 +163,7 @@ const styles = StyleSheet.create({
   title: {
     ...type.h1,
     fontSize: 26,
+    fontFamily: fonts.regular,
     lineHeight: 31,
     marginTop: 3,
   },
@@ -179,6 +181,7 @@ const styles = StyleSheet.create({
   countText: {
     fontSize: 12,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   subtitle: {
@@ -207,6 +210,7 @@ const styles = StyleSheet.create({
   browseText: {
     fontSize: 12.5,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   pressed: {

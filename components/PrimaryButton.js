@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, shadows } from '@/constants/theme';
+import { colors, radius, shadows , fonts } from '@/constants/theme';
 
 const VARIANTS = {
   dark: {
@@ -109,6 +109,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 20,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.2,
   },
   iconWrap: {

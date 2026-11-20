@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors } from '@/constants/theme';
+import { colors , fonts } from '@/constants/theme';
 
 export function Chip({
   label,
@@ -72,10 +72,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.inkSoft,
   },
   labelSmall: {
     fontSize: 12,
+    fontFamily: fonts.regular,
     lineHeight: 16,
   },
   labelSelected: {

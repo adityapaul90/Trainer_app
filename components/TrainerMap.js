@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, shadows, type } from '@/constants/theme';
+import { colors, radius, shadows, type , fonts } from '@/constants/theme';
 import { formatINR } from '@/data/trainers';
 
 const PIN_POSITIONS = [
@@ -267,6 +267,7 @@ const styles = StyleSheet.create({
     fontSize: 8.5,
     lineHeight: 11,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     color: 'rgba(16,18,13,0.42)',
@@ -293,6 +294,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 14,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   pinTextSelected: {
@@ -317,6 +319,7 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     lineHeight: 12,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.inkSoft,
   },
   attribution: {
@@ -326,6 +329,7 @@ const styles = StyleSheet.create({
     fontSize: 8,
     lineHeight: 10,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: 'rgba(16,18,13,0.35)',
   },
   preview: {
@@ -358,6 +362,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 18,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.2,
     color: colors.ink,
   },
@@ -370,6 +375,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 14,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
   },
   previewMeta: {
@@ -387,11 +393,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 18,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   previewPer: {
     fontSize: 9.5,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.muted,
   },
   previewButton: {
@@ -407,6 +415,7 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     lineHeight: 13,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   previewHint: {

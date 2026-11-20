@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DesktopHeader } from '@/components/DesktopHeader';
 import { ScreenMeta } from '@/components/ScreenMeta';
-import { colors, layout, radius, shadows, type } from '@/constants/theme';
+import { colors, layout, radius, shadows, type , fonts } from '@/constants/theme';
 import { useBookings } from '@/context/BookingContext';
 import { getTrainerById } from '@/data/trainers';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   },
   container: {
     width: '100%',
-    maxWidth: layout.profileWidth,
+    maxWidth: layout.wideWidth,
     alignSelf: 'center',
     paddingHorizontal: layout.screenPadding,
   },
@@ -231,11 +231,13 @@ const styles = StyleSheet.create({
   title: {
     ...type.display,
     fontSize: 34,
+    fontFamily: fonts.regular,
     lineHeight: 39,
     marginTop: 4,
   },
   titleDesktop: {
     fontSize: 44,
+    fontFamily: fonts.regular,
     lineHeight: 49,
     letterSpacing: -1.8,
   },
@@ -258,6 +260,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   noteCard: {
@@ -288,6 +291,7 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     lineHeight: 17,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   noteText: {
@@ -350,22 +354,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 18,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.2,
     color: colors.ink,
   },
   threadTime: {
     ...type.tiny,
     fontSize: 9.5,
+    fontFamily: fonts.regular,
   },
   threadRole: {
     fontSize: 10.5,
     lineHeight: 14,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.muted,
     marginTop: 1,
   },
   threadMessage: {
     fontSize: 12,
+    fontFamily: fonts.regular,
     lineHeight: 17,
     color: colors.muted,
     marginTop: 4,
@@ -373,6 +381,7 @@ const styles = StyleSheet.create({
   threadMessageUnread: {
     color: colors.inkSoft,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
   },
   unreadDot: {
     width: 9,
@@ -398,6 +407,7 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     lineHeight: 16,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   pressed: {

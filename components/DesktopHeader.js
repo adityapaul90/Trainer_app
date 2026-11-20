@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { usePathname, useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, layout, radius, type } from '@/constants/theme';
+import { colors, layout, radius, type , fonts } from '@/constants/theme';
 import { useBookings } from '@/context/BookingContext';
 import { USER } from '@/data/trainers';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -23,7 +23,7 @@ function resolveActive(pathname) {
   return null;
 }
 
-export function DesktopHeader({ active }) {
+export function DesktopHeader({ active, location }) {
   const router = useRouter();
   const pathname = usePathname();
   const { isDesktop } = useResponsive();
@@ -85,7 +85,7 @@ export function DesktopHeader({ active }) {
               size={14}
               color={colors.muted}
             />
-            <Text style={styles.locationText}>Guwahati</Text>
+            <Text style={styles.locationText}>{location || 'India'}</Text>
           </View>
 
           <Pressable
@@ -176,6 +176,7 @@ const styles = StyleSheet.create({
     fontSize: 27,
     lineHeight: 31,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -1.5,
     color: colors.ink,
   },
@@ -200,6 +201,7 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     lineHeight: 17,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.muted,
   },
   navLabelActive: {
@@ -220,6 +222,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.muted,
   },
   rightDivider: {
@@ -255,6 +258,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     lineHeight: 11,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   user: {
@@ -285,11 +289,13 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     lineHeight: 16,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   userMeta: {
     ...type.tiny,
     fontSize: 9.5,
+    fontFamily: fonts.regular,
     lineHeight: 12,
   },
   pressed: {

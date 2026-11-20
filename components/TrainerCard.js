@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { IconButton } from '@/components/IconButton';
-import { colors, radius, type } from '@/constants/theme';
+import { colors, radius, type , fonts } from '@/constants/theme';
 import { useBookings } from '@/context/BookingContext';
 import { formatINR } from '@/data/trainers';
 
@@ -135,6 +135,7 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     lineHeight: 13,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   heart: {
@@ -168,6 +169,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 14,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   info: {
@@ -182,6 +184,7 @@ const styles = StyleSheet.create({
   name: {
     ...type.h3,
     fontSize: 17,
+    fontFamily: fonts.regular,
     flexShrink: 1,
   },
   role: {
@@ -206,16 +209,19 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     lineHeight: 14,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   reviewText: {
     fontSize: 10,
     lineHeight: 13,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.muted,
   },
   metaDot: {
     fontSize: 9,
+    fontFamily: fonts.regular,
     color: colors.lineStrong,
     marginHorizontal: 1,
   },
@@ -232,6 +238,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 20,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
     letterSpacing: -0.4,
   },
@@ -239,6 +246,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 14,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.muted,
   },
 });

@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { RatingBadge } from '@/components/RatingBadge';
-import { colors, radius, type } from '@/constants/theme';
+import { colors, radius, type , fonts } from '@/constants/theme';
 import { formatINR } from '@/data/trainers';
 
 export function TrainerRow({ trainer, style }) {
@@ -111,10 +111,12 @@ const styles = StyleSheet.create({
   name: {
     ...type.h3,
     fontSize: 16,
+    fontFamily: fonts.regular,
     flexShrink: 1,
   },
   role: {
     fontSize: 12,
+    fontFamily: fonts.regular,
     lineHeight: 17,
     color: colors.muted,
   },
@@ -147,6 +149,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 22,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
     letterSpacing: -0.5,
   },
@@ -155,6 +158,7 @@ const styles = StyleSheet.create({
     lineHeight: 13,
     color: colors.muted,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
   },
   chevron: {
     marginTop: 8,

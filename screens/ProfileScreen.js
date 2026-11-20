@@ -32,7 +32,9 @@ import {
   radius,
   shadows,
   type,
+  fonts,
 } from '@/constants/theme';
+import { useAuth } from '@/context/AuthContext';
 import { useBookings } from '@/context/BookingContext';
 import { getTrainerById, PROMO_IMAGE, USER } from '@/data/trainers';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -138,8 +140,9 @@ export default function ProfileScreen() {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const { isDesktop } = useResponsive();
   const { favoriteIds, bookings } = useBookings();
+  const { token, user, signOut } = useAuth();
 
-  const contentWidth = Math.min(windowWidth, layout.profileWidth);
+  const contentWidth = Math.min(windowWidth, layout.wideWidth);
   const mainWidth =
     contentWidth - layout.screenPadding * 2 - 340 - 24;
   const savedCardWidth = Math.max((mainWidth - 28) / 3, 190);
@@ -161,6 +164,21 @@ export default function ProfileScreen() {
   const savedTrainers = favoriteIds
     .map((trainerId) => getTrainerById(trainerId))
     .filter(Boolean);
+
+  const authItem = token
+    ? {
+        id: 'auth',
+        label: 'Sign out',
+        note: user?.email || 'Connected to instafit',
+        icon: 'log-out-outline',
+      }
+    : {
+        id: 'auth',
+        label: 'Sign in',
+        note: 'Connect your instafit account',
+        icon: 'log-in-outline',
+      };
+  const accountItems = [authItem, ...MENU_ITEMS];
 
   const completed = bookings.filter(
     (booking) => booking.status === 'completed'
@@ -435,7 +453,7 @@ export default function ProfileScreen() {
             icon="log-out-outline"
             onPress={() => {
               closeSheet();
-              router.replace('/signed-out');
+              signOut().then(() => router.replace('/signed-out'));
             }}
             style={styles.sheetPrimary}
           />
@@ -644,12 +662,20 @@ export default function ProfileScreen() {
 
           <Text style={styles.menuLabel}>Account</Text>
           <View style={styles.menu}>
-            {MENU_ITEMS.map((item, index) => (
+            {accountItems.map((item, index) => (
               <Pressable
                 key={item.id}
                 accessibilityRole="button"
                 accessibilityLabel={item.label}
                 onPress={() => {
+                  if (item.id === 'auth') {
+                    if (token) {
+                      openSheet('signout');
+                    } else {
+                      router.push('/sign-in');
+                    }
+                    return;
+                  }
                   if (item.id === 'messages') {
                     router.push('/inbox');
                     return;
@@ -658,7 +684,7 @@ export default function ProfileScreen() {
                 }}
                 style={({ pressed }) => [
                   styles.menuRow,
-                  index < MENU_ITEMS.length - 1 && styles.menuRowBorder,
+                  index < accountItems.length - 1 && styles.menuRowBorder,
                   pressed && styles.menuRowPressed,
                 ]}
               >
@@ -764,7 +790,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: layout.screenPadding,
   },
   containerDesktop: {
-    maxWidth: layout.profileWidth,
+    maxWidth: layout.wideWidth,
     paddingTop: 32,
   },
   body: {},
@@ -793,11 +819,13 @@ const styles = StyleSheet.create({
   title: {
     ...type.display,
     fontSize: 32,
+    fontFamily: fonts.regular,
     lineHeight: 37,
     marginTop: 5,
   },
   titleDesktop: {
     fontSize: 44,
+    fontFamily: fonts.regular,
     lineHeight: 49,
     letterSpacing: -1.8,
   },
@@ -824,6 +852,7 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     lineHeight: 14,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.inkSoft,
   },
   pressed: {
@@ -861,6 +890,7 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     lineHeight: 12,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     letterSpacing: 0.2,
     color: colors.white,
   },
@@ -890,11 +920,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 24,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.9,
     color: colors.white,
   },
   email: {
     fontSize: 11,
+    fontFamily: fonts.regular,
     lineHeight: 15,
     color: 'rgba(255,255,255,0.62)',
     marginTop: 1,
@@ -909,6 +941,7 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     lineHeight: 14,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: 'rgba(255,255,255,0.62)',
   },
   editButton: {
@@ -945,6 +978,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     lineHeight: 21,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.5,
     color: colors.ink,
   },
@@ -952,6 +986,7 @@ const styles = StyleSheet.create({
     fontSize: 8.5,
     lineHeight: 11,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     letterSpacing: 0.4,
     textTransform: 'uppercase',
     color: colors.muted,
@@ -977,6 +1012,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     lineHeight: 22,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.4,
     color: colors.white,
     marginTop: 4,
@@ -994,6 +1030,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     lineHeight: 12,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   goalTrack: {
@@ -1018,12 +1055,14 @@ const styles = StyleSheet.create({
   goalFootnote: {
     flex: 1,
     fontSize: 10.5,
+    fontFamily: fonts.regular,
     lineHeight: 14,
     color: 'rgba(255,255,255,0.5)',
   },
   goalLink: {
     fontSize: 11,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.volt,
   },
   sectionHeader: {
@@ -1066,6 +1105,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     ...type.h3,
     fontSize: 14,
+    fontFamily: fonts.regular,
   },
   emptyText: {
     ...type.tiny,
@@ -1113,6 +1153,7 @@ const styles = StyleSheet.create({
     fontSize: 13.5,
     lineHeight: 18,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
   },
   menuNote: {
@@ -1134,6 +1175,7 @@ const styles = StyleSheet.create({
   signOutText: {
     fontSize: 13,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.danger,
   },
   version: {
@@ -1179,6 +1221,7 @@ const styles = StyleSheet.create({
   sheetTitle: {
     ...type.h1,
     fontSize: 24,
+    fontFamily: fonts.regular,
     lineHeight: 29,
   },
   sheetSubtitle: {
@@ -1211,6 +1254,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     fontSize: 14,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.ink,
     outlineStyle: 'none',
   },
@@ -1234,6 +1278,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 22,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     fontStyle: 'italic',
     letterSpacing: -0.6,
     color: colors.white,
@@ -1259,6 +1304,7 @@ const styles = StyleSheet.create({
     fontSize: 8.5,
     lineHeight: 11,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: 0.4,
     textTransform: 'uppercase',
     color: colors.volt,
@@ -1268,6 +1314,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 22,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     letterSpacing: 2.2,
     color: colors.white,
   },
@@ -1282,6 +1329,7 @@ const styles = StyleSheet.create({
     fontSize: 7.5,
     lineHeight: 10,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: 1,
     textTransform: 'uppercase',
     color: 'rgba(255,255,255,0.4)',
@@ -1291,6 +1339,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 15,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: 'rgba(255,255,255,0.9)',
   },
   infoRow: {
@@ -1307,6 +1356,7 @@ const styles = StyleSheet.create({
   infoText: {
     flex: 1,
     fontSize: 11.5,
+    fontFamily: fonts.regular,
     lineHeight: 17,
     color: colors.muted,
   },
@@ -1336,6 +1386,7 @@ const styles = StyleSheet.create({
     fontSize: 13.5,
     lineHeight: 18,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
   },
   switchNote: {
@@ -1371,11 +1422,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
   },
   faqAnswer: {
     marginTop: 8,
     fontSize: 12,
+    fontFamily: fonts.regular,
     lineHeight: 19,
     color: colors.muted,
     paddingRight: 22,
@@ -1400,6 +1453,7 @@ const styles = StyleSheet.create({
   contactText: {
     fontSize: 12,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   signOutNotice: {
@@ -1414,6 +1468,7 @@ const styles = StyleSheet.create({
   signOutNoticeText: {
     flex: 1,
     fontSize: 12,
+    fontFamily: fonts.regular,
     lineHeight: 18,
     color: colors.inkSoft,
   },

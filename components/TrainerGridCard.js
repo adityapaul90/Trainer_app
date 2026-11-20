@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { IconButton } from '@/components/IconButton';
 import { RatingBadge } from '@/components/RatingBadge';
-import { colors, radius, type } from '@/constants/theme';
+import { colors, radius, type , fonts } from '@/constants/theme';
 import { useBookings } from '@/context/BookingContext';
 import { formatINR } from '@/data/trainers';
 
@@ -54,7 +54,7 @@ export function TrainerGridCard({ trainer, width }) {
           </Text>
           <View style={styles.metaRow}>
             <Text numberOfLines={1} style={styles.meta}>
-              {trainer.neighborhood} · {trainer.distance} km
+              {trainer.neighborhood}
             </Text>
             <Text style={styles.price}>{formatINR(trainer.price)}</Text>
           </View>
@@ -114,11 +114,13 @@ const styles = StyleSheet.create({
   name: {
     ...type.h3,
     fontSize: 15,
+    fontFamily: fonts.regular,
     lineHeight: 19,
     flexShrink: 1,
   },
   role: {
     fontSize: 12,
+    fontFamily: fonts.regular,
     lineHeight: 17,
     color: colors.muted,
     marginTop: 1,
@@ -139,6 +141,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 18,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
 });

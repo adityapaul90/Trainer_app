@@ -15,13 +15,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { ScreenMeta } from '@/components/ScreenMeta';
-import { colors, layout, radius, type } from '@/constants/theme';
+import { colors, layout, radius, type , fonts } from '@/constants/theme';
 import { useBookings } from '@/context/BookingContext';
 import {
   getTrainerById,
   getTrainerVenue,
   SESSION_TYPES,
-  USER,
 } from '@/data/trainers';
 import { formatFullDate } from '@/utils/dates';
 
@@ -108,7 +107,7 @@ export default function BookingSuccessScreen() {
             </Animated.View>
 
             <Text style={styles.eyebrow}>Session confirmed</Text>
-            <Text style={styles.title}>You&apos;re booked.</Text>
+            <Text style={styles.title}>Your trainer is booked.</Text>
             <Text style={styles.subtitle}>
               Your coach is locked in. Show up ready to move.
             </Text>
@@ -153,6 +152,19 @@ export default function BookingSuccessScreen() {
                     {sessionType ? sessionType.label : 'Session'}
                   </Text>
                 </View>
+                {booking.name ? (
+                  <View style={styles.detailRow}>
+                    <Ionicons
+                      name="person-outline"
+                      size={16}
+                      color={colors.volt}
+                    />
+                    <Text style={styles.detailText}>
+                      {booking.name}
+                      {booking.phone ? ` · +91 ${booking.phone}` : ''}
+                    </Text>
+                  </View>
+                ) : null}
                 <View style={styles.detailRow}>
                   <Ionicons
                     name={
@@ -177,17 +189,6 @@ export default function BookingSuccessScreen() {
                 </Text>
               </View>
             )}
-
-            <View style={styles.emailRow}>
-              <Ionicons
-                name="mail-outline"
-                size={13}
-                color="rgba(255,255,255,0.5)"
-              />
-              <Text style={styles.emailText}>
-                Confirmation sent to {USER.email}
-              </Text>
-            </View>
           </View>
 
           <View style={styles.actions}>
@@ -268,6 +269,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     lineHeight: 28,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -1.3,
     color: colors.white,
   },
@@ -310,6 +312,7 @@ const styles = StyleSheet.create({
     fontSize: 38,
     lineHeight: 43,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -1.6,
     color: colors.white,
     marginTop: 8,
@@ -317,6 +320,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
+    fontFamily: fonts.regular,
     lineHeight: 21,
     color: 'rgba(255,255,255,0.62)',
     textAlign: 'center',
@@ -353,10 +357,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 19,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.white,
   },
   trainerRole: {
     fontSize: 11,
+    fontFamily: fonts.regular,
     lineHeight: 15,
     color: 'rgba(255,255,255,0.48)',
     marginTop: 1,
@@ -373,6 +379,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     lineHeight: 12,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
     color: colors.volt,
@@ -392,19 +399,8 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     lineHeight: 18,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: 'rgba(255,255,255,0.82)',
-  },
-  emailRow: {
-    marginTop: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  emailText: {
-    fontSize: 10.5,
-    lineHeight: 14,
-    color: 'rgba(255,255,255,0.5)',
-    fontWeight: '500',
   },
   actions: {
     width: '100%',
@@ -422,6 +418,7 @@ const styles = StyleSheet.create({
   secondaryText: {
     fontSize: 13,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.white,
   },
 });

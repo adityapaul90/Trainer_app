@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, shadows, type } from '@/constants/theme';
+import { colors, radius, shadows, type , fonts } from '@/constants/theme';
 import { getSearchSummary } from '@/components/SearchSheet';
 import { EMPTY_SEARCH } from '@/utils/trainerFilters';
 
@@ -110,6 +110,7 @@ const styles = StyleSheet.create({
   segmentLabel: {
     ...type.label,
     fontSize: 9,
+    fontFamily: fonts.regular,
     lineHeight: 12,
     letterSpacing: 0.8,
   },
@@ -117,6 +118,7 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     lineHeight: 17,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
     marginTop: 1,
   },
@@ -134,12 +136,14 @@ const styles = StyleSheet.create({
     fontSize: 13.5,
     lineHeight: 18,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   mobileMeta: {
     fontSize: 10.5,
     lineHeight: 14,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.muted,
   },
   searchButton: {

@@ -27,13 +27,25 @@ export function searchTrainers(trainers, search = {}) {
       trainer.name,
       trainer.role,
       trainer.neighborhood,
+      trainer.area,
+      trainer.city,
+      trainer.state,
       ...trainer.tags,
     ]
+      .filter(Boolean)
       .join(' ')
       .toLowerCase();
 
+    const areaText = (
+      trainer.searchArea ||
+      [trainer.neighborhood, trainer.area, trainer.city, trainer.state]
+        .filter(Boolean)
+        .join(' ')
+    ).toLowerCase();
+
     const matchesQuery = !query || searchable.includes(query);
-    const matchesArea = !area || trainer.neighborhood === area;
+    const matchesArea =
+      !area || areaText.includes(area.trim().toLowerCase());
     const matchesCategory =
       !category || trainer.categories.includes(category);
     const matchesWhen = when !== 'today' || trainer.availableToday;

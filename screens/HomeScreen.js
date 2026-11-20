@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -25,38 +25,36 @@ import {
   radius,
   shadows,
   type,
+  fonts,
 } from '@/constants/theme';
 import { useBookings } from '@/context/BookingContext';
+import { usePublishedTrainers } from '@/context/PublishedTrainersContext';
 import {
   CATEGORIES,
   getTrainerById,
   getTrainerVenue,
   PROMO_IMAGE,
   SESSION_TYPES,
-  TRAINERS,
   USER,
 } from '@/data/trainers';
 import { useResponsive } from '@/hooks/useResponsive';
 import { formatMonthDay, formatRelativeDay } from '@/utils/dates';
 import { EMPTY_SEARCH } from '@/utils/trainerFilters';
 
-const topRated = [...TRAINERS]
-  .sort((a, b) => b.rating - a.rating)
-  .slice(0, 7);
-
-const nearby = [...TRAINERS]
-  .sort((a, b) => a.distance - b.distance)
-  .slice(0, 7);
-
-const availableToday = TRAINERS.filter(
-  (trainer) => trainer.availableToday
-);
-
 export default function HomeScreen() {
   const router = useRouter();
   const { isDesktop } = useResponsive();
   const { upcomingBookings, unreadCount } = useBookings();
+  const { trainers } = usePublishedTrainers();
   const [searchOpen, setSearchOpen] = useState(false);
+  const topRated = useMemo(
+    () => [...trainers].sort((a, b) => b.rating - a.rating).slice(0, 7),
+    [trainers]
+  );
+  const availableToday = useMemo(
+    () => trainers.filter((trainer) => trainer.availableToday),
+    [trainers]
+  );
 
   const nextBooking = upcomingBookings[0] || null;
   const nextTrainer = nextBooking
@@ -276,8 +274,8 @@ export default function HomeScreen() {
           </View>
 
           <CardRail
-            title="Client favourites in Guwahati"
-            subtitle="The coaches clients keep rebooking"
+            title="Top rated coaches"
+            subtitle="Coaches on instafit"
             onAction={() => openExplore()}
             style={styles.rail}
           >
@@ -336,18 +334,7 @@ export default function HomeScreen() {
           </Pressable>
 
           <CardRail
-            title="Popular near you"
-            subtitle="Within 5 km of downtown Guwahati"
-            onAction={() => openExplore()}
-            style={styles.rail}
-          >
-            {nearby.map((trainer) => (
-              <TrainerCard key={trainer.id} trainer={trainer} />
-            ))}
-          </CardRail>
-
-          <CardRail
-            title="Available today in Guwahati"
+            title="Available today"
             subtitle="Open slots before the day is done"
             onAction={() => openExplore()}
             style={styles.rail}
@@ -437,6 +424,7 @@ const styles = StyleSheet.create({
     fontSize: 26,
     lineHeight: 30,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -1.4,
     color: colors.ink,
   },
@@ -453,6 +441,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.muted,
   },
   avatarButton: {
@@ -506,6 +495,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     lineHeight: 11,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   eyebrow: {
@@ -528,11 +518,13 @@ const styles = StyleSheet.create({
   hero: {
     ...type.display,
     fontSize: 34,
+    fontFamily: fonts.regular,
     lineHeight: 38,
     marginTop: 26,
   },
   heroDesktop: {
     fontSize: 52,
+    fontFamily: fonts.regular,
     lineHeight: 56,
     letterSpacing: -2.2,
     marginTop: 0,
@@ -540,12 +532,14 @@ const styles = StyleSheet.create({
   heroSub: {
     ...type.small,
     fontSize: 14,
+    fontFamily: fonts.regular,
     lineHeight: 20,
     maxWidth: 310,
     marginTop: 8,
   },
   heroSubDesktop: {
     fontSize: 16,
+    fontFamily: fonts.regular,
     lineHeight: 24,
     maxWidth: 460,
     marginTop: 12,
@@ -590,6 +584,7 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     lineHeight: 13,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     color: 'rgba(255,255,255,0.52)',
@@ -598,6 +593,7 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     lineHeight: 14,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: 'rgba(255,255,255,0.42)',
   },
   nextMain: {
@@ -617,6 +613,7 @@ const styles = StyleSheet.create({
     fontSize: 8.5,
     lineHeight: 11,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: 1,
     color: 'rgba(16,18,13,0.58)',
   },
@@ -624,6 +621,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     lineHeight: 24,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.8,
     color: colors.ink,
   },
@@ -631,6 +629,7 @@ const styles = StyleSheet.create({
     fontSize: 8.5,
     lineHeight: 11,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: 0.8,
     color: 'rgba(16,18,13,0.58)',
   },
@@ -654,6 +653,7 @@ const styles = StyleSheet.create({
     fontSize: 14.5,
     lineHeight: 18,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.2,
     color: colors.white,
   },
@@ -662,6 +662,7 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     lineHeight: 15,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: 'rgba(255,255,255,0.72)',
   },
   nextLocation: {
@@ -675,6 +676,7 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     lineHeight: 14,
     fontWeight: '500',
+    fontFamily: fonts.medium,
     color: 'rgba(255,255,255,0.46)',
   },
   nextArrow: {
@@ -751,6 +753,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 13,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: 0.4,
     textTransform: 'uppercase',
     color: colors.white,
@@ -772,12 +775,14 @@ const styles = StyleSheet.create({
     fontSize: 22,
     lineHeight: 27,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.6,
     color: colors.white,
     maxWidth: 310,
   },
   promoTitleDesktop: {
     fontSize: 32,
+    fontFamily: fonts.regular,
     lineHeight: 37,
     letterSpacing: -1,
     maxWidth: 460,
@@ -796,6 +801,7 @@ const styles = StyleSheet.create({
   promoButtonText: {
     fontSize: 12,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   trustRow: {
@@ -818,6 +824,7 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     lineHeight: 14,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.muted,
   },
 });

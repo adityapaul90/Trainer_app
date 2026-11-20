@@ -27,8 +27,10 @@ import {
   layout,
   radius,
   type,
+  fonts,
 } from '@/constants/theme';
-import { CATEGORIES, TRAINERS } from '@/data/trainers';
+import { CATEGORIES } from '@/data/trainers';
+import { usePublishedTrainers } from '@/context/PublishedTrainersContext';
 import { useResponsive } from '@/hooks/useResponsive';
 import {
   applyAdvancedFilters,
@@ -52,6 +54,7 @@ export default function ExploreScreen() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [view, setView] = useState('list');
   const [selectedMapId, setSelectedMapId] = useState(null);
+  const { trainers: publishedTrainers } = usePublishedTrainers();
 
   const requestedCategory = param(params.category, 'all');
   const category = CATEGORIES.some((item) => item.id === requestedCategory)
@@ -87,10 +90,10 @@ export default function ExploreScreen() {
 
   const baseTrainers = useMemo(
     () =>
-      searchTrainers(TRAINERS, search).sort(
+      searchTrainers(publishedTrainers, search).sort(
         (a, b) => b.rating - a.rating
       ),
-    [search]
+    [search, publishedTrainers]
   );
 
   const trainers = useMemo(
@@ -112,7 +115,11 @@ export default function ExploreScreen() {
     contentWidth -
     layout.screenPadding * 2 -
     (mapSplit ? mapWidth + 20 : 0);
-  const columns = isDesktop && !mapSplit ? 4 : 2;
+  const columns = isDesktop && !mapSplit
+    ? 4
+    : mapSplit && availableWidth > 700
+      ? 3
+      : 2;
   const gridGap = isDesktop ? 18 : 14;
   const cardWidth = Math.max(
     (availableWidth - gridGap * (columns - 1)) / columns,
@@ -183,9 +190,9 @@ export default function ExploreScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScreenMeta
         title="Explore trainers"
-        description="Browse 10 vetted strength, HIIT, yoga, boxing, and mobility coaches across Guwahati. Filter by price, rating, and availability."
+        description="Browse vetted strength, HIIT, yoga, boxing, and mobility coaches. Filter by price, rating, and availability."
       />
-      <DesktopHeader active="explore" />
+      <DesktopHeader active="explore" location={search.area || undefined} />
       <ScrollView
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -202,7 +209,7 @@ export default function ExploreScreen() {
                 Explore trainers
               </Text>
               <Text style={styles.subtitle}>
-                Vetted coaches across Guwahati.
+                Vetted coaches across India.
               </Text>
             </View>
             <View style={styles.countBadge}>
@@ -425,7 +432,7 @@ export default function ExploreScreen() {
           <View style={styles.resultsRow}>
             <Text style={styles.resultsText}>
               {trainers.length} {trainers.length === 1 ? 'coach' : 'coaches'}
-              {search.area ? ` in ${search.area}` : ' in Guwahati'}
+              {search.area ? ` in ${search.area}` : ' in India'}
             </Text>
             {!mapVisible ? (
               <Text style={styles.sortText}>Top rated first</Text>
@@ -436,7 +443,7 @@ export default function ExploreScreen() {
             <EmptyState
               icon="search-outline"
               title="No coaches found"
-              message="Try a different specialty, widen your filters, or search another neighborhood."
+              message="Try a different specialty, widen your filters, or search another city or state."
               actionLabel="Clear filters"
               onAction={resetAll}
             />
@@ -525,11 +532,13 @@ const styles = StyleSheet.create({
   title: {
     ...type.display,
     fontSize: 32,
+    fontFamily: fonts.regular,
     lineHeight: 37,
     marginTop: 5,
   },
   titleDesktop: {
     fontSize: 44,
+    fontFamily: fonts.regular,
     lineHeight: 49,
     letterSpacing: -1.8,
     marginTop: 6,
@@ -550,12 +559,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 21,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.volt,
   },
   countLabel: {
     fontSize: 9,
     lineHeight: 12,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     letterSpacing: 0.4,
     textTransform: 'uppercase',
     color: 'rgba(255,255,255,0.65)',
@@ -588,6 +599,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
   },
   filtersTextActive: {
@@ -606,6 +618,7 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     lineHeight: 12,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   resetButton: {
@@ -620,6 +633,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
     textDecorationLine: 'underline',
   },
@@ -648,6 +662,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 14,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.muted,
   },
   viewTextActive: {
@@ -688,6 +703,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 14,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
   },
   resultsRow: {
@@ -701,6 +717,7 @@ const styles = StyleSheet.create({
   resultsText: {
     ...type.small,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
   },
   sortText: {

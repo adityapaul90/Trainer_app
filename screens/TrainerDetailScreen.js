@@ -23,8 +23,9 @@ import { PrimaryButton } from '@/components/PrimaryButton';
 import { RatingBadge } from '@/components/RatingBadge';
 import { ReviewCard } from '@/components/ReviewCard';
 import { ScreenMeta } from '@/components/ScreenMeta';
-import { colors, layout, radius, shadows, type } from '@/constants/theme';
+import { colors, layout, radius, shadows, type , fonts } from '@/constants/theme';
 import { useBookings } from '@/context/BookingContext';
+import { usePublishedTrainers } from '@/context/PublishedTrainersContext';
 import {
   formatINR,
   getRatingBreakdown,
@@ -56,11 +57,22 @@ export default function TrainerDetailScreen() {
   const insets = useSafeAreaInsets();
   const { isDesktop } = useResponsive();
   const { isFavorite, toggleFavorite, startThread } = useBookings();
+  const { loading: trainersLoading } = usePublishedTrainers();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const [photosOpen, setPhotosOpen] = useState(false);
   const [photoIndex, setPhotoIndex] = useState(0);
 
   const trainer = getTrainerById(Array.isArray(id) ? id[0] : id);
+
+  if (trainersLoading && String(Array.isArray(id) ? id[0] : id).startsWith('published-')) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.notFound}>
+          <Text style={styles.notFoundTitle}>Loading trainer…</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (!trainer) {
     return (
@@ -85,7 +97,7 @@ export default function TrainerDetailScreen() {
   const venue = getTrainerVenue(trainer);
   const breakdown = getRatingBreakdown(trainer);
   const categories = getRatingCategories(trainer);
-  const responseTime = getResponseTime(trainer);
+  const responseTime = trainer.responseTime || getResponseTime(trainer);
 
   const goBack = () => {
     if (router.canGoBack()) {
@@ -155,7 +167,7 @@ export default function TrainerDetailScreen() {
             color={colors.muted}
           />
           <Text style={styles.metaText} numberOfLines={1}>
-            {venue.name}, {trainer.neighborhood} · {trainer.distance} km
+            {[venue.name, trainer.neighborhood].filter(Boolean).join(', ')}
           </Text>
         </View>
       </View>
@@ -254,7 +266,7 @@ export default function TrainerDetailScreen() {
     <View style={styles.screen}>
       <ScreenMeta
         title={trainer.name}
-        description={`Book ${trainer.name}, ${trainer.role.toLowerCase()} in ${trainer.neighborhood}, Guwahati. Rated ${trainer.rating} from ${trainer.reviewCount} client reviews.`}
+        description={`Book ${trainer.name}, ${trainer.role.toLowerCase()}${trainer.neighborhood ? ` in ${trainer.neighborhood}` : ''}. Rated ${trainer.rating} from ${trainer.reviewCount} client reviews.`}
       />
       <StatusBar style="light" />
 
@@ -382,7 +394,6 @@ export default function TrainerDetailScreen() {
                     <View style={styles.venueCopy}>
                       <Text style={styles.venueName}>{venue.name}</Text>
                       <Text style={styles.venueAddress}>{venue.address}</Text>
-                      <Text style={styles.venueNote}>{venue.note}</Text>
                     </View>
                   </View>
 
@@ -581,7 +592,6 @@ export default function TrainerDetailScreen() {
                 <View style={styles.venueCopy}>
                   <Text style={styles.venueName}>{venue.name}</Text>
                   <Text style={styles.venueAddress}>{venue.address}</Text>
-                  <Text style={styles.venueNote}>{venue.note}</Text>
                 </View>
               </View>
 
@@ -831,10 +841,12 @@ const styles = StyleSheet.create({
   name: {
     ...type.h1,
     fontSize: 28,
+    fontFamily: fonts.regular,
     flexShrink: 1,
   },
   nameDesktop: {
     fontSize: 38,
+    fontFamily: fonts.regular,
     lineHeight: 44,
     letterSpacing: -1.4,
   },
@@ -893,6 +905,7 @@ const styles = StyleSheet.create({
     fontSize: 26,
     lineHeight: 31,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.8,
     color: colors.ink,
   },
@@ -900,6 +913,7 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     lineHeight: 15,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.muted,
   },
   reservationRating: {
@@ -911,6 +925,7 @@ const styles = StyleSheet.create({
   reservationRatingText: {
     fontSize: 12,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   reservationRows: {
@@ -927,6 +942,7 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     lineHeight: 17,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.inkSoft,
   },
   reservationButton: {
@@ -938,6 +954,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 15,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.muted,
   },
   reservationPolicy: {
@@ -952,6 +969,7 @@ const styles = StyleSheet.create({
   reservationPolicyText: {
     flex: 1,
     fontSize: 10.5,
+    fontFamily: fonts.regular,
     lineHeight: 14,
     color: colors.muted,
   },
@@ -975,6 +993,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 22,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.4,
     color: colors.ink,
   },
@@ -982,6 +1001,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     lineHeight: 12,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     letterSpacing: 0.6,
     textTransform: 'uppercase',
     color: colors.muted,
@@ -994,12 +1014,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...type.h2,
     fontSize: 19,
+    fontFamily: fonts.regular,
     marginTop: 28,
     marginBottom: 10,
   },
   sectionTitleNoMargin: {
     ...type.h2,
     fontSize: 19,
+    fontFamily: fonts.regular,
   },
   bio: {
     ...type.body,
@@ -1035,6 +1057,7 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     lineHeight: 17,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.inkSoft,
   },
   tags: {
@@ -1053,6 +1076,7 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: 12,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.inkSoft,
   },
   certList: {
@@ -1074,6 +1098,7 @@ const styles = StyleSheet.create({
   certText: {
     flex: 1,
     fontSize: 13.5,
+    fontFamily: fonts.regular,
     lineHeight: 19,
     color: colors.inkSoft,
   },
@@ -1102,17 +1127,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 19,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   venueAddress: {
     fontSize: 11.5,
+    fontFamily: fonts.regular,
     lineHeight: 16,
     color: colors.muted,
     marginTop: 2,
-  },
-  venueNote: {
-    ...type.tiny,
-    marginTop: 6,
   },
   availabilityCard: {
     marginTop: 28,
@@ -1143,6 +1166,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     lineHeight: 22,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.3,
     color: colors.white,
     marginTop: 4,
@@ -1162,6 +1186,7 @@ const styles = StyleSheet.create({
   availButtonText: {
     fontSize: 12.5,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   reviewHeader: {
@@ -1176,6 +1201,7 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     lineHeight: 15,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.muted,
   },
   breakdownRow: {
@@ -1202,6 +1228,7 @@ const styles = StyleSheet.create({
     width: 26,
     fontSize: 10.5,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   barTrack: {
@@ -1221,6 +1248,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     fontSize: 10,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.muted,
   },
   catRow: {
@@ -1232,6 +1260,7 @@ const styles = StyleSheet.create({
     width: 96,
     fontSize: 11.5,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.inkSoft,
   },
   catTrack: {
@@ -1251,6 +1280,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     fontSize: 11,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   reviewList: {
@@ -1304,6 +1334,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 14,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.white,
   },
   sheet: {
@@ -1342,6 +1373,7 @@ const styles = StyleSheet.create({
   barLabel: {
     ...type.label,
     fontSize: 9,
+    fontFamily: fonts.regular,
   },
   barPriceRow: {
     flexDirection: 'row',
@@ -1352,6 +1384,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     lineHeight: 26,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.7,
     color: colors.ink,
   },
@@ -1359,6 +1392,7 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     color: colors.muted,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
   },
   barButton: {
     flex: 1,
@@ -1402,6 +1436,7 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     lineHeight: 15,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   photosOverlay: {
@@ -1425,6 +1460,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 17,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.white,
   },
   photosModalSpacer: {
@@ -1461,6 +1497,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 14,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.white,
   },
   hostCard: {
@@ -1493,17 +1530,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 18,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   hostMeta: {
     fontSize: 10.5,
     lineHeight: 14,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.muted,
     marginTop: 2,
   },
   hostBio: {
     fontSize: 12,
+    fontFamily: fonts.regular,
     lineHeight: 17,
     color: colors.inkSoft,
   },
@@ -1526,6 +1566,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 15,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
 });

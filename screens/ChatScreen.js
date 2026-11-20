@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/EmptyState';
 import { ScreenMeta } from '@/components/ScreenMeta';
-import { colors, layout, radius, type } from '@/constants/theme';
+import { colors, layout, radius, type , fonts } from '@/constants/theme';
 import { useBookings } from '@/context/BookingContext';
 import { getTrainerById, USER } from '@/data/trainers';
 
@@ -368,6 +368,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 18,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.2,
     color: colors.ink,
   },
@@ -389,6 +390,7 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     lineHeight: 14,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.muted,
   },
   viewButton: {
@@ -406,6 +408,7 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     lineHeight: 15,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
   },
   chatContent: {
@@ -424,6 +427,7 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     lineHeight: 12,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     color: colors.muted,
@@ -490,6 +494,7 @@ const styles = StyleSheet.create({
   },
   bubbleText: {
     fontSize: 13,
+    fontFamily: fonts.regular,
     lineHeight: 19,
     color: colors.inkSoft,
   },
@@ -500,6 +505,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     lineHeight: 12,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.muted,
     marginTop: 4,
     marginLeft: 4,
@@ -561,6 +567,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 14,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.inkSoft,
   },
   inputRow: {
@@ -579,6 +586,7 @@ const styles = StyleSheet.create({
     minHeight: 38,
     maxHeight: 110,
     fontSize: 13.5,
+    fontFamily: fonts.regular,
     lineHeight: 19,
     color: colors.ink,
     paddingVertical: 9,
@@ -605,6 +613,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     lineHeight: 12,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.muted,
   },
   pressed: {

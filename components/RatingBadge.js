@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors } from '@/constants/theme';
+import { colors , fonts } from '@/constants/theme';
 
 const TONES = {
   dark: {
@@ -69,9 +69,11 @@ const styles = StyleSheet.create({
   },
   rating: {
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.2,
   },
   count: {
     fontWeight: '500',
+    fontFamily: fonts.medium,
   },
 });

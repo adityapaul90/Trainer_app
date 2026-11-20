@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { colors, layout, type } from '@/constants/theme';
+import { colors, layout, type , fonts } from '@/constants/theme';
 import { useResponsive } from '@/hooks/useResponsive';
 
 export function CardRail({
@@ -157,6 +157,7 @@ const styles = StyleSheet.create({
     fontSize: 19,
     lineHeight: 24,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.5,
     color: colors.ink,
   },
@@ -198,6 +199,7 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     lineHeight: 15,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
     textDecorationLine: 'underline',
   },

@@ -2,11 +2,16 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from 'react';
 
-import { daysFromNow } from '@/utils/dates';
+import {
+  addSavedBookingId,
+  getSavedBookingIds,
+} from '@/services/bookingStore';
+import { getCustomerBooking } from '@/services/customerBookings';
 
 const BookingContext = createContext(null);
 
@@ -18,105 +23,6 @@ function timeToMinutes(value) {
   return normalized * 60 + minutes;
 }
 
-const SEED_BOOKINGS = [
-  {
-    id: 'seed-maya',
-    trainerId: 'maya-chen',
-    dateKey: daysFromNow(2),
-    time: '10:00 AM',
-    duration: 60,
-    sessionType: 'in-person',
-    total: 1899,
-    status: 'confirmed',
-    createdAt: 'seed',
-  },
-  {
-    id: 'seed-sofia',
-    trainerId: 'sofia-alvarez',
-    dateKey: daysFromNow(-8),
-    time: '9:00 AM',
-    duration: 45,
-    sessionType: 'online',
-    total: 1199,
-    status: 'completed',
-    createdAt: 'seed',
-  },
-  {
-    id: 'seed-marcus',
-    trainerId: 'marcus-reed',
-    dateKey: daysFromNow(-21),
-    time: '6:30 PM',
-    duration: 60,
-    sessionType: 'in-person',
-    total: 1599,
-    status: 'completed',
-    createdAt: 'seed',
-  },
-];
-
-const SEED_THREADS = [
-  {
-    id: 'thread-maya-chen',
-    trainerId: 'maya-chen',
-    unread: 1,
-    updatedAt: 3,
-    messages: [
-      {
-        id: 'msg-maya-1',
-        from: 'trainer',
-        text: 'Hey Aditya! Looking forward to Thursday. Any focus areas you want me to build around?',
-        at: '9:12 AM',
-      },
-      {
-        id: 'msg-maya-2',
-        from: 'user',
-        text: 'Mostly squat depth and keeping my brace on the way up.',
-        at: '9:20 AM',
-      },
-      {
-        id: 'msg-maya-3',
-        from: 'trainer',
-        text: 'Perfect. I will bring a banded drill and film one set so you can see the difference. Bring your flat shoes.',
-        at: '9:28 AM',
-      },
-    ],
-  },
-  {
-    id: 'thread-sofia-alvarez',
-    trainerId: 'sofia-alvarez',
-    unread: 0,
-    updatedAt: 2,
-    messages: [
-      {
-        id: 'msg-sofia-1',
-        from: 'trainer',
-        text: 'Your hip mobility work is paying off. Keep the 5-minute routine on your off days and we will test it Saturday.',
-        at: 'Yesterday',
-      },
-      {
-        id: 'msg-sofia-2',
-        from: 'user',
-        text: 'Will do. The couch stretch is humbling.',
-        at: 'Yesterday',
-      },
-    ],
-  },
-  {
-    id: 'thread-andre-thompson',
-    trainerId: 'andre-thompson',
-    unread: 1,
-    updatedAt: 1,
-    messages: [
-      {
-        id: 'msg-andre-1',
-        from: 'trainer',
-        text: 'Dropping a quick note: your footwork homework is in the app. Two rounds, no more. Quality over volume.',
-        at: 'Mon',
-      },
-    ],
-  },
-];
-
 function formatClock(date = new Date()) {
   return date.toLocaleTimeString('en-US', {
     hour: 'numeric',
@@ -124,29 +30,40 @@ function formatClock(date = new Date()) {
   });
 }
 
-const AUTO_REPLIES = {
-  'maya-chen':
-    'Got it. I will build that into the plan and send you a quick warm-up before Thursday.',
-  'sofia-alvarez':
-    'That sounds good. Keep it gentle today and we can adjust the sequence when you arrive.',
-  'andre-thompson':
-    'Perfect. Bring water and I will have the pads ready. We will keep the rounds short and sharp.',
-};
-
-const DEFAULT_REPLY =
-  'Thanks for the note. I will get back to you shortly with a plan for our next session.';
-
 export function BookingProvider({ children }) {
-  const [bookings, setBookings] = useState(SEED_BOOKINGS);
-  const [favoriteIds, setFavoriteIds] = useState([
-    'maya-chen',
-    'sofia-alvarez',
-    'andre-thompson',
-  ]);
-  const [threads, setThreads] = useState(SEED_THREADS);
+  const [bookings, setBookings] = useState([]);
+  const [favoriteIds, setFavoriteIds] = useState([]);
+  const [threads, setThreads] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+
+    getSavedBookingIds()
+      .then((ids) =>
+        Promise.all(ids.map((id) => getCustomerBooking(id).catch(() => null)))
+      )
+      .then((rows) => {
+        if (!active) return;
+        const saved = rows.filter(Boolean);
+        if (!saved.length) return;
+        setBookings((current) => {
+          const known = new Set(current.map((item) => item.id));
+          return [
+            ...saved.filter((item) => !known.has(item.id)),
+            ...current,
+          ];
+        });
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const addBooking = useCallback((booking) => {
     setBookings((current) => [booking, ...current]);
+    addSavedBookingId(booking.id).catch(() => {});
   }, []);
 
   const cancelBooking = useCallback((bookingId) => {
@@ -233,34 +150,7 @@ export function BookingProvider({ children }) {
           : thread
       )
     );
-
-    const target = threads.find((thread) => thread.id === threadId);
-    const reply = target
-      ? AUTO_REPLIES[target.trainerId] || DEFAULT_REPLY
-      : DEFAULT_REPLY;
-
-    setTimeout(() => {
-      setThreads((current) =>
-        current.map((thread) =>
-          thread.id === threadId
-            ? {
-                ...thread,
-                updatedAt: Date.now(),
-                messages: [
-                  ...thread.messages,
-                  {
-                    id: `msg-${Date.now()}-reply`,
-                    from: 'trainer',
-                    text: reply,
-                    at: formatClock(),
-                  },
-                ],
-              }
-            : thread
-        )
-      );
-    }, 1400);
-  }, [threads]);
+  }, []);
 
   const upcomingBookings = useMemo(
     () =>

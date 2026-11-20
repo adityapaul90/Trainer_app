@@ -3,7 +3,7 @@ import { Tabs } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors } from '@/constants/theme';
+import { colors , fonts } from '@/constants/theme';
 import { useResponsive } from '@/hooks/useResponsive';
 
 const ICONS = {
@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     lineHeight: 13,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     letterSpacing: 0.1,
     marginTop: 1,
   },

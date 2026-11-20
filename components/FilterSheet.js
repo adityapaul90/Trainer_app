@@ -15,6 +15,7 @@ import {
   shadows,
   spacing,
   type,
+  fonts,
 } from '@/constants/theme';
 import { CATEGORIES } from '@/data/trainers';
 import { applyAdvancedFilters } from '@/utils/trainerFilters';
@@ -310,6 +311,7 @@ const styles = StyleSheet.create({
   title: {
     ...type.display,
     fontSize: 28,
+    fontFamily: fonts.regular,
     lineHeight: 32,
     marginTop: 4,
   },
@@ -337,6 +339,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 20,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.2,
     color: colors.ink,
   },
@@ -371,6 +374,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.inkSoft,
   },
   choiceTextSelected: {
@@ -403,12 +407,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 17,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
   },
   toggleNote: {
     fontSize: 10.5,
     lineHeight: 14,
     fontWeight: '500',
+    fontFamily: fonts.medium,
     color: colors.muted,
     marginTop: 1,
   },
@@ -457,6 +463,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.inkSoft,
   },
   specialtyTextSelected: {
@@ -481,6 +488,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.ink,
     textDecorationLine: 'underline',
   },
@@ -497,6 +505,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 17,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   pressed: {

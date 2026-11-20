@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { ScreenMeta } from '@/components/ScreenMeta';
-import { colors, layout, type } from '@/constants/theme';
+import { colors, layout, type , fonts } from '@/constants/theme';
 
 export default function SignedOutScreen() {
   const router = useRouter();
@@ -49,7 +49,7 @@ export default function SignedOutScreen() {
             <PrimaryButton
               label="Sign back in"
               variant="volt"
-              onPress={() => router.replace('/profile')}
+              onPress={() => router.replace('/sign-in')}
             />
             <Pressable
               accessibilityRole="button"
@@ -128,6 +128,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     lineHeight: 28,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -1.3,
     color: colors.white,
   },
@@ -155,6 +156,7 @@ const styles = StyleSheet.create({
     fontSize: 34,
     lineHeight: 39,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -1.4,
     color: colors.white,
     textAlign: 'center',
@@ -163,6 +165,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     maxWidth: 300,
     fontSize: 14,
+    fontFamily: fonts.regular,
     lineHeight: 21,
     color: 'rgba(255,255,255,0.58)',
     textAlign: 'center',
@@ -181,6 +184,7 @@ const styles = StyleSheet.create({
   secondaryText: {
     fontSize: 13,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.white,
   },
   pressed: {
@@ -195,6 +199,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 10,
+    fontFamily: fonts.regular,
     lineHeight: 14,
     color: 'rgba(255,255,255,0.38)',
   },

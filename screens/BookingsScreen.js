@@ -23,6 +23,7 @@ import {
   radius,
   shadows,
   type,
+  fonts,
 } from '@/constants/theme';
 import { useBookings } from '@/context/BookingContext';
 import {
@@ -459,6 +460,7 @@ const styles = StyleSheet.create({
   },
   titleDesktop: {
     fontSize: 44,
+    fontFamily: fonts.regular,
     lineHeight: 49,
     letterSpacing: -1.8,
   },
@@ -481,6 +483,7 @@ const styles = StyleSheet.create({
   title: {
     ...type.display,
     fontSize: 32,
+    fontFamily: fonts.regular,
     lineHeight: 37,
     marginTop: 5,
   },
@@ -522,6 +525,7 @@ const styles = StyleSheet.create({
   segmentLabel: {
     fontSize: 13,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.muted,
   },
   segmentLabelActive: {
@@ -542,6 +546,7 @@ const styles = StyleSheet.create({
   segmentCountText: {
     fontSize: 10,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.muted,
   },
   segmentCountTextActive: {
@@ -567,10 +572,12 @@ const styles = StyleSheet.create({
   listTitle: {
     ...type.h2,
     fontSize: 19,
+    fontFamily: fonts.regular,
   },
   listCount: {
     ...type.tiny,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
   },
   list: {
     gap: 14,
@@ -609,6 +616,7 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     lineHeight: 12,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: 0.4,
     color: colors.ink,
   },
@@ -637,6 +645,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     lineHeight: 12,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
@@ -659,11 +668,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 24,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.5,
     color: colors.white,
   },
   cardRole: {
     fontSize: 11,
+    fontFamily: fonts.regular,
     lineHeight: 15,
     color: 'rgba(255,255,255,0.72)',
     marginTop: 1,
@@ -682,6 +693,7 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     lineHeight: 18,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.inkSoft,
   },
   cardDivider: {
@@ -701,6 +713,7 @@ const styles = StyleSheet.create({
     fontSize: 19,
     lineHeight: 23,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     letterSpacing: -0.5,
     color: colors.ink,
   },
@@ -722,6 +735,7 @@ const styles = StyleSheet.create({
   cancelText: {
     fontSize: 12,
     fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.danger,
   },
   viewButton: {
@@ -736,6 +750,7 @@ const styles = StyleSheet.create({
   viewText: {
     fontSize: 11.5,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.white,
   },
   rebookButton: {
@@ -750,6 +765,7 @@ const styles = StyleSheet.create({
   rebookText: {
     fontSize: 11.5,
     fontWeight: '800',
+    fontFamily: fonts.extrabold,
     color: colors.ink,
   },
   pressed: {
@@ -788,6 +804,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 6,
     fontWeight: '600',
+    fontFamily: fonts.semibold,
     color: colors.inkSoft,
   },
   modalNote: {
